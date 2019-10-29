@@ -10,6 +10,7 @@
 library(rprime)
 library(tidyverse)
 library(wrapr)
+library(plyr)
 
 # Set your working directory here. the one below is mine. Copy and paste yours, and assign it to 'working_dir'. 
 # This working directory should contain file folders for each participant, with each folder containing Eprime trial data.
@@ -187,8 +188,84 @@ for (participant_file_folder in 1:length(MLINDIV_filelist)){
   print(current_file)
 }
 
+convert_to_pos <- function (imagecol){
+  end_pos = c()
+  for (i in 1:length(imagecol)){
+    pos <- strsplit(as.character(imagecol[i]), "/")
+    pos <- pos[[1]][2]
+    pos <- strsplit(pos, ".jpg")
+    pos <- pos[[1]][1]
+    # TODO:  If string contains "circle", split
+    end_pos <- c(end_pos, pos)
+    
+  }
+  return(end_pos)
+}
+
+convert_to_hall <- function(videocol){
+  hallsnip <- c()
+  for (i in 1:length(videocol)){
+    hall <- substr(videocol[i], 8, 12)
+    hallsnip <- c(hallsnip, hall)
+  }
+  return(hallsnip)
+}
+
+convert_to_movement <- function(hallcol){
+  movement <- c()
+  for ( i in 1:length(hallcol)){
+    
+    mov <- substr(hallcol[i], 1, 1) == substr(hallcol[i], 4, 4)
+    if (mov & !is.na(mov)){
+      mov <- "Rot"
+    } else if (hallcol[i] == "Selec" & !is.na(mov)){
+      mov <- "Select"
+    } else if (!is.na(mov)){
+      mov <- "Walk"
+    }
+    movement <- c(movement, mov)
+  }
+  return(movement)
+}
+
+convert_to_letter <- function(endloccol){
+  lett <- c()
+  for (i in 1:length(endloccol)){
+    let_loc <- substr(endloccol[i], 1, 1)
+    lett <- c(lett, let_loc)
+  }
+  return(lett)
+}
+
+convert_to_dir <- function(endloccol){
+  direction <- c()
+  for (i in 1:length(endloccol)){
+    dirnum <- as.numeric(substr(endloccol[i], 2, 2))
+    if (!is.na(dirnum)){
+      face_dir <- switch(dirnum, "N", "E", "S", "W")
+    } else {
+      face_dir <- dirnum
+    }
+    
+    direction <- c(direction, face_dir)
+  }
+  return(direction)
+}
+
+master_file <- master_file %>% mutate(end_location = convert_to_pos(ImageFile))
+master_file <- master_file %>% mutate(hallsnip = convert_to_hall(VideoFile))
+master_file <- master_file %>% mutate(movement = convert_to_movement(hallsnip))
+master_file <- master_file %>% mutate(letter_loc = convert_to_letter(end_location))
+master_file <- master_file %>% mutate(face_dir = convert_to_dir(end_location))
+master_file <- master_file %>% mutate(sphere = grepl("sphere", master_file$end_location))
+
+master_file <- join(master_file, mcoords, by = "letter_loc")
+
+
 # Export the finished product
 write.csv(master_file, "MLINDIV_behavioral_master.csv")
+
+
 
 
 
