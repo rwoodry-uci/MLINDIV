@@ -261,6 +261,13 @@ master_file <- master_file %>% mutate(sphere = grepl("sphere", master_file$end_l
 
 master_file <- join(master_file, mcoords, by = "letter_loc")
 
+for (i in 1:length(master_file$letter_loc)){
+  if (master_file$letter_loc[i] == "L" & !is.na(master_file$letter_loc[i])){
+    master_file$x[i] <- -5
+    master_file$y[i] <- 0
+  }
+}
+
 
 # Export the finished product
 write.csv(master_file, "MLINDIV_behavioral_master.csv")
