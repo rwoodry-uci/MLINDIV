@@ -1,6 +1,6 @@
 # Author: Robert Woodry
 # Contact: rwoodry@uci.edu
-# Last Updated: 10/24/2019
+# Last Updated: 11/01/2019
 # About: This script goes through all participant file folders, compiles relevant Eprime behavioral data into a 
 #         "tidy data" format, and appends it to a MLINDIV_behavioral_master.csv for further analysis
 
